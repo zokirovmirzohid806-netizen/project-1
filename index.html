@@ -619,12 +619,6 @@ function getPdfLib(){
   }
   return lib;
 }
-// Supabase ulanish sozlamalari
-const SB_URL = "https://liugseqxsxusozzasgqg.supabase.co"; // Project URL
-const SB_KEY = "sb_publishable_TRSZsonJEx5BaNp-allZfg_DG-JJLMj"; // Anon Public Key
-
-// Supabase mijozini yaratish
-const supabase = supabase.createClient(SB_URL, SB_KEY);
 let S = {
   quizzes: JSON.parse(localStorage.getItem('eq_quizzes')||'[]'),
   results: JSON.parse(localStorage.getItem('eq_results')||'[]'),
@@ -1672,6 +1666,16 @@ function hideLoading(){document.getElementById('loading').style.display='none';}
 ['delete-modal','code-modal','edit-settings-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)closeModal(id);});
 });
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = "https://liugseqxsxusozzasgqg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_TRSZsonJEx5BaNp-allZfg_DG-JJLMj";
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 </script>
+
+</body>
+</html>
 </body>
 </html>
