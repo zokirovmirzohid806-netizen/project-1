@@ -237,7 +237,6 @@ footer a:hover{text-decoration:underline;}
 </head>
 <body>
 
-<!-- HOME -->
 <div id="page-home" class="page active">
   <nav>
     <div class="logo">Edu<span>Quiz</span></div>
@@ -275,7 +274,6 @@ footer a:hover{text-decoration:underline;}
   <footer>EduQuiz &nbsp;|&nbsp; Murojaat: <a href="https://t.me/zokirov_0712" target="_blank">@zokirov_0712</a></footer>
 </div>
 
-<!-- ADMIN LOGIN -->
 <div id="page-login" class="page">
   <nav><div class="logo">Edu<span>Quiz</span></div><button class="btn btn-secondary btn-sm" onclick="showPage('page-home')">← Orqaga</button></nav>
   <div class="login-box anim">
@@ -294,7 +292,6 @@ footer a:hover{text-decoration:underline;}
   </div>
 </div>
 
-<!-- STUDENT LOGIN -->
 <div id="page-student-login" class="page">
   <nav><div class="logo">Edu<span>Quiz</span></div><button class="btn btn-secondary btn-sm" onclick="showPage('page-home')">← Orqaga</button></nav>
   <div class="login-box anim">
@@ -318,7 +315,6 @@ footer a:hover{text-decoration:underline;}
   </div>
 </div>
 
-<!-- ADMIN PANEL -->
 <div id="page-admin" class="page">
   <nav>
     <div class="logo">Edu<span>Quiz</span></div>
@@ -339,7 +335,6 @@ footer a:hover{text-decoration:underline;}
     </div>
     <div class="admin-content">
 
-      <!-- DASHBOARD -->
       <div id="tab-dashboard" class="admin-section active">
         <div class="section-title">Dashboard</div>
         <div class="section-sub">Umumiy ko'rsatkichlar</div>
@@ -360,7 +355,6 @@ footer a:hover{text-decoration:underline;}
         </div>
       </div>
 
-      <!-- UPLOAD -->
       <div id="tab-upload" class="admin-section">
         <div class="section-title">Fayl Yuklash</div>
         <div class="section-sub">Fayl yuklang, savollarni tahrirlang va quiz yarating</div>
@@ -432,7 +426,6 @@ footer a:hover{text-decoration:underline;}
           <button class="btn btn-secondary" onclick="manualAddQuestions()">✏️ Qo'lda Kiriting</button>
         </div>
 
-        <!-- EDITOR -->
         <div id="editor-section" style="display:none;margin-top:26px">
           <div class="divider"></div>
           <div class="editor-toolbar">
@@ -454,7 +447,6 @@ footer a:hover{text-decoration:underline;}
         </div>
       </div>
 
-      <!-- QUIZZES -->
       <div id="tab-quizzes" class="admin-section">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
           <div><div class="section-title">Quizlar</div><div class="section-sub">Barcha yaratilgan quizlar</div></div>
@@ -462,7 +454,6 @@ footer a:hover{text-decoration:underline;}
         <div id="quizzes-list"></div>
       </div>
 
-      <!-- RESULTS -->
       <div id="tab-results" class="admin-section">
         <div class="section-title">Natijalar</div>
         <div class="section-sub">Barcha o'quvchilarning test natijalari</div>
@@ -479,7 +470,6 @@ footer a:hover{text-decoration:underline;}
         </div>
       </div>
 
-      <!-- STATS -->
       <div id="tab-stats" class="admin-section">
         <div class="section-title">Statistika</div>
         <div class="section-sub">Batafsil tahlil</div>
@@ -495,7 +485,6 @@ footer a:hover{text-decoration:underline;}
   </div>
 </div>
 
-<!-- QUIZ -->
 <div id="page-quiz" class="page">
   <div class="quiz-header">
     <div>
@@ -523,7 +512,6 @@ footer a:hover{text-decoration:underline;}
   </div>
 </div>
 
-<!-- RESULT -->
 <div id="page-result" class="page">
   <nav><div class="logo">Edu<span>Quiz</span></div></nav>
   <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px">
@@ -545,16 +533,13 @@ footer a:hover{text-decoration:underline;}
   <footer>EduQuiz — Murojaat: <a href="https://t.me/zokirov_0712" target="_blank">@zokirov_0712</a></footer>
 </div>
 
-<!-- LOADING -->
 <div class="loading-overlay" id="loading" style="display:none">
   <div class="spinner"></div>
   <div class="loading-text" id="loading-text">Yuklanmoqda...</div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- DELETE MODAL -->
 <div class="modal-overlay" id="delete-modal">
   <div class="modal">
     <h2>⚠️ O'chirishni tasdiqlang</h2>
@@ -566,7 +551,6 @@ footer a:hover{text-decoration:underline;}
   </div>
 </div>
 
-<!-- CODE MODAL -->
 <div class="modal-overlay" id="code-modal">
   <div class="modal" style="text-align:center">
     <h2>✅ Quiz Yaratildi!</h2>
@@ -580,7 +564,6 @@ footer a:hover{text-decoration:underline;}
   </div>
 </div>
 
-<!-- EDIT SETTINGS MODAL -->
 <div class="modal-overlay" id="edit-settings-modal">
   <div class="modal">
     <h2>⚙️ Quiz Sozlamalari</h2>
@@ -609,7 +592,18 @@ footer a:hover{text-decoration:underline;}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
+// ===== SUPABASE API ULANISHI =====
+const supabaseUrl = 'https://liugseqxsxusozzasgqg.supabase.co';
+const supabaseKey = 'sb_publishable_TRSZsonJEx5BaNp-allZfg_DG-JJLMj';
+
+// BU YERDA XATO BOR EDI: 'supabase' nomi kutubxonaning o'zi bilan to'qnashib qolgan.
+// Uni 'supabaseClient' deb o'zgartirdik, qolgan hamma joyi bir xil.
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+// ===================================
+
 const ADMIN_PASS = 'ustoz07';
 // pdf.js — workerSrc bo'sh string = fake worker (eng ishonchli, CDN kerak emas)
 function getPdfLib(){
@@ -1453,6 +1447,7 @@ function renderQuizzes(){
 }
 
 // ===== ADMIN QUIZZES =====
+// ===== PARSER =====
 function parseQuestions(rawText) {
     const lines = rawText.split('\n').filter(line => line.trim());
     const questions = [];
@@ -1504,7 +1499,6 @@ function parseQuestions(rawText) {
         return q;
     });
 }
-
 function openEditSettings(id){
   const q=S.quizzes.find(q=>q.id===id);if(!q)return;
   document.getElementById('edit-quiz-id').value=id;
@@ -1667,7 +1661,5 @@ function hideLoading(){document.getElementById('loading').style.display='none';}
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)closeModal(id);});
 });
 </script>
-</body>
-</html>
 </body>
 </html>
