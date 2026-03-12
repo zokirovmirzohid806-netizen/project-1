@@ -623,11 +623,58 @@ let S = {
 };
 let editorData = [];
 
-function saveData(){
-  localStorage.setItem('eq_quizzes',JSON.stringify(S.quizzes));
-  localStorage.setItem('eq_results',JSON.stringify(S.results));
+// ===== DATA PERSISTENCE (SUPABASE BILAN ONLAYN) =====
+async function saveData() {
+  // Brauzer xotirasiga ham saqlab qo'yamiz (zaxira uchun)
+  localStorage.setItem('edu_quiz_data', JSON.stringify(S));
+  
+  if (typeof supabase !== 'undefined') {
+    try {
+      // Supabase'dagi 'settings' jadvaliga hamma ma'lumotni bitta qator qilib yozamiz
+      const { error } = await supabase.from('settings').upsert({ 
+        id: 1, 
+        admin_pass: S.adminPass,
+        quizzes: S.quizzes,
+        results: S.results
+      });
+      if (error) throw error;
+      console.log("Ma'lumotlar onlayn bazaga saqlandi!");
+    } catch (err) {
+      console.error("Bazaga yozishda xato:", err.message);
+    }
+  }
 }
 
+async function loadData() {
+  showLoading("Ma'lumotlar yuklanmoqda...");
+  
+  if (typeof supabase !== 'undefined') {
+    try {
+      // Bazadan ma'lumotlarni o'qiymiz
+      const { data, error } = await supabase.from('settings').select('*').single();
+      
+      if (data && !error) {
+        S.adminPass = data.admin_pass || "admin123";
+        S.quizzes = data.quizzes || [];
+        S.results = data.results || [];
+        console.log("Ma'lumotlar Supabase'dan muvaffaqiyatli yuklandi.");
+      } else {
+        // Agar baza bo'sh bo'lsa, local xotiradan olamiz
+        const local = localStorage.getItem('edu_quiz_data');
+        if (local) Object.assign(S, JSON.parse(local));
+      }
+    } catch (err) {
+      console.error("Yuklashda xato:", err.message);
+    }
+  }
+  
+  // Ekranni yangilash
+  updateStats();
+  renderQuizList();
+  renderResultsTable();
+  renderFullStats();
+  hideLoading();
+}
 // ===== NAV =====
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
