@@ -599,8 +599,6 @@ footer a:hover{text-decoration:underline;}
 const supabaseUrl = 'https://liugseqxsxusozzasgqg.supabase.co';
 const supabaseKey = 'sb_publishable_TRSZsonJEx5BaNp-allZfg_DG-JJLMj';
 
-// BU YERDA XATO BOR EDI: 'supabase' nomi kutubxonaning o'zi bilan to'qnashib qolgan.
-// Uni 'supabaseClient' deb o'zgartirdik, qolgan hamma joyi bir xil.
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 // ===================================
 
@@ -613,6 +611,7 @@ function getPdfLib(){
   }
   return lib;
 }
+
 let S = {
   quizzes: JSON.parse(localStorage.getItem('eq_quizzes')||'[]'),
   results: JSON.parse(localStorage.getItem('eq_results')||'[]'),
@@ -623,58 +622,51 @@ let S = {
 };
 let editorData = [];
 
-// ===== DATA PERSISTENCE (SUPABASE BILAN ONLAYN) =====
-async function saveData() {
-  // Brauzer xotirasiga ham saqlab qo'yamiz (zaxira uchun)
-  localStorage.setItem('edu_quiz_data', JSON.stringify(S));
-  
-  if (typeof supabase !== 'undefined') {
-    try {
-      // Supabase'dagi 'settings' jadvaliga hamma ma'lumotni bitta qator qilib yozamiz
-      const { error } = await supabase.from('settings').upsert({ 
-        id: 1, 
-        admin_pass: S.adminPass,
-        quizzes: S.quizzes,
-        results: S.results
-      });
-      if (error) throw error;
-      console.log("Ma'lumotlar onlayn bazaga saqlandi!");
-    } catch (err) {
-      console.error("Bazaga yozishda xato:", err.message);
+// BAZADAN O'QISH
+async function loadDataFromDB() {
+  try {
+    const { data: quizzes } = await supabaseClient.from('quizzes').select('*');
+    if (quizzes && quizzes.length > 0) {
+        S.quizzes = quizzes;
+        localStorage.setItem('eq_quizzes', JSON.stringify(S.quizzes));
     }
+
+    const { data: results } = await supabaseClient.from('results').select('*');
+    if (results && results.length > 0) {
+        S.results = results;
+        localStorage.setItem('eq_results', JSON.stringify(S.results));
+    }
+
+    // Agar dastur yuklanganda panel ochiq bo'lsa darhol yangilab qo'yamiz
+    if(document.getElementById('page-admin').classList.contains('active')) {
+        renderDashboard();
+        renderQuizzes();
+        renderResults();
+        renderStats();
+    }
+  } catch(e) {
+    console.error("Bazadan yuklashda xatolik:", e);
+  }
+}
+loadDataFromDB(); // Dastur ishga tushishi bilan yuklanadi
+
+// BAZAGA SAQLASH
+async function saveData(){
+  localStorage.setItem('eq_quizzes',JSON.stringify(S.quizzes));
+  localStorage.setItem('eq_results',JSON.stringify(S.results));
+
+  try {
+    if (S.quizzes.length > 0) {
+      await supabaseClient.from('quizzes').upsert(S.quizzes);
+    }
+    if (S.results.length > 0) {
+      await supabaseClient.from('results').upsert(S.results);
+    }
+  } catch(e) {
+    console.error("Bazaga saqlashda xatolik:", e);
   }
 }
 
-async function loadData() {
-  showLoading("Ma'lumotlar yuklanmoqda...");
-  
-  if (typeof supabase !== 'undefined') {
-    try {
-      // Bazadan ma'lumotlarni o'qiymiz
-      const { data, error } = await supabase.from('settings').select('*').single();
-      
-      if (data && !error) {
-        S.adminPass = data.admin_pass || "admin123";
-        S.quizzes = data.quizzes || [];
-        S.results = data.results || [];
-        console.log("Ma'lumotlar Supabase'dan muvaffaqiyatli yuklandi.");
-      } else {
-        // Agar baza bo'sh bo'lsa, local xotiradan olamiz
-        const local = localStorage.getItem('edu_quiz_data');
-        if (local) Object.assign(S, JSON.parse(local));
-      }
-    } catch (err) {
-      console.error("Yuklashda xato:", err.message);
-    }
-  }
-  
-  // Ekranni yangilash
-  updateStats();
-  renderQuizList();
-  renderResultsTable();
-  renderFullStats();
-  hideLoading();
-}
 // ===== NAV =====
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1457,6 +1449,7 @@ function finishQuiz(timeout=false){
   S.quizSession=null;
   showPage('page-result');
 }
+
 // ===== QUIZLAR RO'YXATINI CHIQARISH =====
 function renderQuizzes(){
   const list = document.getElementById('quizzes-list');
@@ -1494,58 +1487,6 @@ function renderQuizzes(){
 }
 
 // ===== ADMIN QUIZZES =====
-// ===== PARSER =====
-function parseQuestions(rawText) {
-    const lines = rawText.split('\n').filter(line => line.trim());
-    const questions = [];
-    let currentQuestion = null;
-
-    lines.forEach(line => {
-        line = line.trim();
-        if (!line) return;
-
-        // Savolni aniqlash (raqam bilan boshlansa yoki hali savol bo'lmasa)
-        if (/^\d+[\.\)]/.test(line) || (!currentQuestion && line.length > 10)) {
-            if (currentQuestion && currentQuestion.options.length > 0) {
-                questions.push(currentQuestion);
-            }
-            currentQuestion = {
-                q: line.replace(/^\d+[\.\)]\s*/, ''), // Yangi dastur savolni 'q' deb qabul qiladi
-                options: [],
-                hasCorrect: false
-            };
-        } else if (currentQuestion) {
-            // Variantlarni ajratish va tozalash
-            const isCorrect = line.includes('#');
-            let cleanOption = line.replace('#', '').trim();
-
-            // A), B), 1. kabi variant belgilarini olib tashlash
-            cleanOption = cleanOption.replace(/^[A-Za-z0-9]+[\.\)]\s*/, '');
-
-            if (cleanOption) {
-                if (isCorrect) {
-                    currentQuestion.hasCorrect = true;
-                }
-                // Yangi tizim kutayotgan ob'ekt formati
-                currentQuestion.options.push({
-                    text: cleanOption,
-                    correct: isCorrect
-                });
-            }
-        }
-    });
-
-    // Oxirgi savolni saqlash
-    if (currentQuestion && currentQuestion.options.length > 0) {
-        questions.push(currentQuestion);
-    }
-
-    // Kamida 2 ta varianti bor va to'g'ri javob (#) ko'rsatilganlarini qaytarish
-    return questions.filter(q => q.options.length >= 2 && q.hasCorrect).map(q => {
-        delete q.hasCorrect; // Qo'shimcha kalitni o'chirib tashlaymiz
-        return q;
-    });
-}
 function openEditSettings(id){
   const q=S.quizzes.find(q=>q.id===id);if(!q)return;
   document.getElementById('edit-quiz-id').value=id;
@@ -1592,12 +1533,24 @@ function toggleStatus(id){
   toast(`Quiz ${q.status==='active'?'faollashtirildi ✅':'to\'xtatildi ⛔'}`,'info');
 }
 
+// O'CHIRISH (BAZADAN HAM O'CHIRILADI)
 function confirmDel(id){
   document.getElementById('delete-modal').classList.add('show');
-  document.getElementById('confirm-delete-btn').onclick=()=>{
-    S.quizzes=S.quizzes.filter(q=>q.id!==id);
-    S.results=S.results.filter(r=>r.quizId!==id);
-    saveData();renderQuizzes();closeModal('delete-modal');toast('O\'chirildi','info');
+  document.getElementById('confirm-delete-btn').onclick = async () => {
+    S.quizzes = S.quizzes.filter(q => q.id !== id);
+    S.results = S.results.filter(r => r.quizId !== id);
+
+    try {
+      await supabaseClient.from('quizzes').delete().eq('id', id);
+      await supabaseClient.from('results').delete().eq('quizId', id);
+    } catch(e) {
+      console.error("O'chirishda xatolik:", e);
+    }
+
+    saveData();
+    renderQuizzes();
+    closeModal('delete-modal');
+    toast('O\'chirildi', 'info');
   };
 }
 
@@ -1642,9 +1595,19 @@ function exportResults(){
   toast('CSV yuklab olindi ✅','success');
 }
 
-function clearResults(){
+async function clearResults(){
   const filter=document.getElementById('results-filter').value;
-  if(filter){S.results=S.results.filter(r=>r.quizId!==filter);}else{S.results=[];}
+  try {
+    if(filter){
+      S.results=S.results.filter(r=>r.quizId!==filter);
+      await supabaseClient.from('results').delete().eq('quizId', filter);
+    }else{
+      S.results=[];
+      await supabaseClient.from('results').delete().neq('id', '0'); // Barchasini o'chirish
+    }
+  } catch(e) {
+    console.error("Natijalarni o'chirishda xatolik:", e);
+  }
   saveData();renderResults();toast('Natijalar tozalandi','info');
 }
 
